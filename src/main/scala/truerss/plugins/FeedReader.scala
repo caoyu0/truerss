@@ -1,14 +1,11 @@
 package truerss.plugins
 
-import java.time.{LocalDateTime, LocalDate}
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
+
+import truerss.util.{PreEntry, Util}
 
 import scala.util.Try
-
-import com.github.truerss.base.Entry
-import truerss.util.Util
-
 import scala.xml.{Elem, Node}
 
 trait FeedParser {
@@ -19,7 +16,7 @@ trait FeedParser {
     if (x.isEmpty) { None }
     else { Some(x.text) }
   }
-  def parse(x: Elem): Iterable[Entry]
+  def parse(x: Elem): Iterable[PreEntry]
 
   def getDate(x: String)(implicit format: DateTimeFormatter) = {
     Try(LocalDateTime.parse(x.toCharArray, format)).toOption.map(_.toDate)
@@ -46,15 +43,14 @@ case object RSSParser extends FeedParser {
 
   implicit val format = DateTimeFormatter.RFC_1123_DATE_TIME
 
-  override def parse(x: Elem): Iterable[Entry] = {
+  override def parse(x: Elem): Iterable[PreEntry] = {
     (x \\ _item).map { implicit item =>
-      Entry(
-        title = from(_title).get,
-        url = from(_link).get,
+      PreEntry(
+        title = from(_title),
+        url = from(_link),
         description = from(_description),
         publishedDate = from(_pubDate).flatMap(getDate).getOrElse(new java.util.Date),
-        author = from(_author).getOrElse(""),
-        content = None
+        author = from(_author)
       )
     }
   }
@@ -79,22 +75,36 @@ case object AtomParser extends FeedParser {
   }
 
   protected def getLinks(x: Node) = {
-    (x \ _link)
+    val links = x \ _link
+    val r = links
       .filter(_.attribute("rel").exists(_.forall(_.text == "alternate")))
       .flatMap(_.attribute("href").map(_.text)).headOption
+
+    if (links.nonEmpty && r.isEmpty) {
+      links.headOption.flatMap(_.attribute("href").map(_.text))
+    } else {
+      r
+    }
   }
 
   implicit val format = DateTimeFormatter.ISO_DATE_TIME
 
-  override def parse(x: Elem): Iterable[Entry] = {
+  override def parse(x: Elem): Iterable[PreEntry] = {
+    // global author
+    val xs = x \ _author
+    val g = if (xs.nonEmpty) {
+      (xs \ _name).headOption.map(_.text).orElse(Some(xs.text))
+    } else {
+      None
+    }
+
     (x \ _entry).map { implicit entry =>
-      Entry(
-        url = getLinks(entry).get,
-        title = from(_title).get,
-        author = getAuthors(entry).getOrElse(""),
+      PreEntry(
+        url = getLinks(entry),
+        title = from(_title),
+        author = getAuthors(entry).orElse(g),
         publishedDate = from(_updated).flatMap(getDate).getOrElse(new java.util.Date),
-        description = from(_summary),
-        content = None
+        description = from(_summary)
       )
     }
   }

@@ -48,6 +48,6 @@ object Util {
 
 }
 
-trait Jsonize
+
 
 
