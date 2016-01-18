@@ -11,7 +11,7 @@ object Libs {
     val sqliteVersion = "3.8.7"
     val romeVersion = "1.5.1"
     val commonValidatorVersion = "1.4.0"
-    val ceVersion = "0.0.2"
+    val ceVersion = "0.0.3"
     val shapelessVersion = "2.1.0"
     val sprayVersion = "1.3.3"
     val sprayJsonVersion = "1.3.2"
