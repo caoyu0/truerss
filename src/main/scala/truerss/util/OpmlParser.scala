@@ -2,7 +2,6 @@ package truerss.util
 
 import scala.xml._
 import scala.util.control.Exception._
-import scala.util.Either
 
 case class Outline(title: String, link: String)
 
@@ -11,11 +10,13 @@ object OpmlParser {
   val _outline = "outline"
   val _title = "title"
   val _xmlUrl = "xmlUrl"
+  import syntax._
+  import ext._
 
-  def parse(s: String): Either[String, Iterable[Outline]] = {
+  def parse(s: String): String \/ Iterable[Outline] = {
     catching(classOf[Exception]) either load(s) fold(
-      err => Left(err.getMessage),
-      xs => Right(xs)
+      err => err.getMessage.left,
+      xs => xs.right
     )
   }
 

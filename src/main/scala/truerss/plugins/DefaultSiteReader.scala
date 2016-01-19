@@ -11,9 +11,11 @@ import org.jsoup.Jsoup
 import scala.collection.JavaConversions._
 import scala.util.control.Exception._
 
+import truerss.util.syntax.{\/, ext}
+
 class DefaultSiteReader(config: Config)
   extends BaseSitePlugin(config) {
-
+  import ext._
   import org.apache.logging.log4j.LogManager
   private final val logger = LogManager.getLogger("DefaultSiteReader")
 
@@ -21,8 +23,8 @@ class DefaultSiteReader(config: Config)
   import truerss.util.Request._
 
   implicit def exception2error(x: Throwable) = x match {
-    case x: RuntimeException => Left(ConnectionError(x.getMessage))
-    case x: Exception => Left(UnexpectedError(x.getMessage))
+    case x: RuntimeException => ConnectionError(x.getMessage).left
+    case x: Exception => UnexpectedError(x.getMessage).left
   }
 
   override val author = "fntz"
@@ -46,11 +48,11 @@ class DefaultSiteReader(config: Config)
     )
   }
 
-  private def extract(url: String): Either[Errors.Error, Vector[Entry]] = {
+  private def extract(url: String): Error \/ Vector[Entry] = {
     val response = getResponse(url)
 
     if (response.isError) {
-      Left(UnexpectedError(s"Connection error for $url with status code: ${response.code}"))
+      UnexpectedError(s"Connection error for $url with status code: ${response.code}").left
     } else {
       val x = scala.xml.XML.loadString(response.body)
       val parser = FeedParser.matchParser(x)
@@ -69,7 +71,7 @@ class DefaultSiteReader(config: Config)
           }
         }.map(_.toEntry).toVector
 
-      Right(result)
+      result.right
     }
   }
 
@@ -97,18 +99,18 @@ class DefaultSiteReader(config: Config)
         catching(classOf[Exception]) either extractContent(url.toString) fold(
           err => {
             logger.error(s"content error -> $url", err.getMessage)
-            Left(UnexpectedError(err.getMessage))
+            UnexpectedError(err.getMessage).left
           },
           either => either
         )
-      case HtmlRequest(_) => Left(UnexpectedError("Pass url only"))
+      case HtmlRequest(_) => UnexpectedError("Pass url only").left
     }
   }
 
-  private def extractContent(url: String): Either[Errors.Error, Option[String]] = {
+  private def extractContent(url: String): Error \/ Option[String] = {
     val response = getResponse(url)
     if (response.isError) {
-      Left(UnexpectedError(s"Connection error for $url"))
+      UnexpectedError(s"Connection error for $url").left
     } else {
       val url0 = new URL(url)
       val base = s"${url0.getProtocol}://${url0.getHost}"
@@ -133,7 +135,7 @@ class DefaultSiteReader(config: Config)
 
       need.select("form, input, meta, style, script").foreach(_.remove)
 
-      Right(Some(need.html()))
+      need.html().some.right
     }
   }
 
