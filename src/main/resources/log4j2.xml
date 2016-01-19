@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <!--<RollingFile name="rollingFile" fileName="output.log" filePattern="output-%d{MM-dd-yyyy}.log.gz">-->
-            <!--<PatternLayout pattern="%highlight %d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>-->
-            <!--<TimeBasedTriggeringPolicy />-->
-        <!--</RollingFile>-->
+        <RollingFile name="rollingFile" fileName="output.log" filePattern="output-%d{MM-dd-yyyy}.log.gz">
+            <PatternLayout pattern="%highlight %d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+            <TimeBasedTriggeringPolicy />
+        </RollingFile>
 
 
 
-        <Console name="rollingFile" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>
-        </Console>
+        <!--<Console name="rollingFile" target="SYSTEM_OUT">-->
+            <!--<PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>-->
+        <!--</Console>-->
 
 
     </Appenders>
