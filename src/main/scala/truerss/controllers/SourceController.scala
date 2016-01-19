@@ -1,25 +1,16 @@
 package truerss.controllers
 
-import java.io.StringReader
-import java.net.URL
-
 import akka.pattern.ask
 import com.github.fntzr.spray.routing.ext.BaseController
-import com.rometools.opml.feed.opml.Opml
-import com.rometools.rome.io.WireFeedInput
-import org.xml.sax.InputSource
-import spray.http.{HttpCharsets, HttpCharset, MultipartFormData, StatusCodes}
-import spray.routing.{Route, HttpService}
+import spray.http.{HttpCharsets, MultipartFormData, StatusCodes}
+import spray.routing.{HttpService, Route}
 import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
-import truerss.util.Lens
 import truerss.util.OpmlParser
 
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.{Failure => F, Success => S, Try}
-
-import shapeless.syntax.typeable._
 
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
@@ -30,9 +21,6 @@ trait SourceController extends BaseController
   import db._
   import spray.json._
   import util._
-  import Lens._
-
-  import scala.collection.JavaConversions._
 
   def all = end(GetAll)
 

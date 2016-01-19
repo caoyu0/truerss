@@ -1,13 +1,10 @@
 package truerss.plugins
 
-import java.io.ByteArrayInputStream
 import java.net.URL
-import java.util.Date
 
 import com.github.truerss.ContentExtractor
 import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
 import com.github.truerss.base._
-import com.rometools.rome.io.{ParsingFeedException => PE, SyndFeedInput, XmlReader}
 import com.typesafe.config.Config
 import org.jsoup.Jsoup
 
@@ -24,7 +21,6 @@ class DefaultSiteReader(config: Config)
   import truerss.util.Request._
 
   implicit def exception2error(x: Throwable) = x match {
-    case x: PE => Left(ParsingError(x.getMessage))
     case x: RuntimeException => Left(ConnectionError(x.getMessage))
     case x: Exception => Left(UnexpectedError(x.getMessage))
   }
@@ -37,8 +33,6 @@ class DefaultSiteReader(config: Config)
   override val contentTypeParam = ContentTypeParam.URL
 
   override val priority = -1
-
-  val sfi = new SyndFeedInput()
 
   override def matchUrl(url: URL) = true
 
